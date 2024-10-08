@@ -1,0 +1,89 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+// A Huffman tree node
+struct Node {
+    char data;
+    int freq;
+    Node *left, *right;
+    
+    Node(char data, int freq) {
+        left = right = nullptr;
+        this->data = data;
+        this->freq = freq;
+    }
+};
+
+// For the priority queue (min-heap), comparison function for priority queue
+struct compare {
+    bool operator()(Node* left, Node* right) {
+        return (left->freq > right->freq);
+    }
+};
+
+// Function to print the Huffman codes in pre-order traversal
+void printCodes(Node* root, string str, unordered_map<char, string> &huffmanCodes) {
+    if (!root)
+        return;
+
+    if (root->data != '$')
+        huffmanCodes[root->data] = str;
+
+    printCodes(root->left, str + "0", huffmanCodes);
+    printCodes(root->right, str + "1", huffmanCodes);
+}
+
+// Main function to build the Huffman tree and print codes
+void HuffmanCodes(char S[], int f[], int N) {
+    Node *left, *right, *top;
+
+    // Create a min heap (priority queue)
+    priority_queue<Node*, vector<Node*>, compare> minHeap;
+
+    // Create leaf nodes for each character and add them to the min heap
+    for (int i = 0; i < N; i++) {
+        minHeap.push(new Node(S[i], f[i]));
+    }
+
+    // Iterate while size of heap doesn't become 1
+    while (minHeap.size() != 1) {
+        // Extract the two nodes with the lowest frequency
+        left = minHeap.top();
+        minHeap.pop();
+
+        right = minHeap.top();
+        minHeap.pop();
+
+        // Create a new internal node with frequency equal to the sum of the two nodes' frequencies
+        top = new Node('$', left->freq + right->freq);
+
+        top->left = left;
+        top->right = right;
+
+        minHeap.push(top);
+    }
+
+    // The remaining node is the root of the Huffman tree
+    unordered_map<char, string> huffmanCodes;
+    printCodes(minHeap.top(), "", huffmanCodes);
+
+    // Output the Huffman codes in the desired order
+    for (int i = 0; i < N; i++) {
+        cout << huffmanCodes[S[i]] << " ";
+    }
+}
+
+int main() {
+    char S[] = { 'a', 'b', 'c', 'd', 'e', 'f' };
+    int f[] = { 5, 9, 12, 13, 16, 45 };
+
+    int N = sizeof(S) / sizeof(S[0]);
+
+    HuffmanCodes(S, f, N);
+
+    return 0;
+}
